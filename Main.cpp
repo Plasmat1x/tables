@@ -12,8 +12,14 @@ int main()
 
 void Main::init()
 {
+    allTables.name = "All tables";
+    allTables.fields.push_back(std::make_pair("ID", 3));
+    allTables.fields.push_back(std::make_pair("Table name", 20));
+
+    tables.push_back(allTables);
+
     Table test_table;
-    test_table._name = "test";
+    test_table.name = "test";
     test_table.fields.push_back(std::make_pair("ID", 3));
     test_table.fields.push_back(std::make_pair("Name", 16));
     test_table.fields.push_back(std::make_pair("Date", 8));
@@ -26,264 +32,160 @@ void Main::init()
     test_table.content.push_back("Alexandr");
     test_table.content.push_back("16061997");
 
-    _tables.push_back(test_table);
+    tables.push_back(test_table);
 
     Table test_table2;
-    test_table2._name = "test2";
+    test_table2.name = "tes";
     test_table2.fields.push_back(std::make_pair("ID", 3));
     test_table2.fields.push_back(std::make_pair("Name", 16));
     test_table2.fields.push_back(std::make_pair("Date", 8));
 
-    _tables.push_back(test_table2);
+    tables.push_back(test_table2);
 
     RUN = true;
-    control_info();
+
+    std::cout << "Use \"help\" command for command list" << std::endl;
 }
 
 void Main::run()
 {
     while (RUN)
     {
-        std::cout << "Enter input command> "; std::cin >> _input; std::cout << std::endl;
-
-        switch (_input)
+        if (used == nullptr)
         {
-        case 0:
-            if (dialog.start("You shure about exit?"))
+            std::cout << "Enter command > ";
+            std::getline(std::cin, input);
+            std::cout << input << std::endl;
+        }
+        else
+        {
+            std::cout << "<" << used->name << "> Enter command >> ";
+            std::getline(std::cin, input);
+        }
+
+        if (input.compare("exit") == 0)
+        {
+            if (dialog.start("exit ?"))
             {
                 RUN = false;
-                break;
             }
-            else
-            {
-                system("cls");
-                control_info();
-                break;
-            }
+        }
 
-        case 1:
-            show_tables();
-            std::cout << std::endl;
-            control_info();
-            break;
-        case 2:
-            if (dialog.start("You want create table?"))
+        if (input.compare("help") == 0)
+        {
+            info();
+        }
+
+        if (input.compare("clear") == 0)
+        {
+            system("cls");
+        }
+
+        if (input.compare("show") == 0)
+        {
+            if (used == nullptr)
             {
-                system("cls");
-                std::cout << "Enter name table: ";
-                std::string name;
-                std::cin >> name;
-                create_table(name);
-                system("cls");
-                control_info();
-                break;
+                show_tables(tables);
             }
             else
             {
-                system("cls");
-                control_info();
-                break;
+                show_table(used);
             }
-        case 3:
-            if (_tables.size() != 0)
+        }
+
+        if (input.compare("use") == 0)
+        {
+            std::cout << "Enter table name: ";      
+            std::getline(std::cin, input);
+            std::cout << input << " selected" << std::endl;
+
+            for (int i = 0; i < tables.size(); i++)
             {
-                system("cls");
-                show_tables();
-                std::cout << "Enter ID of table: "; std::cin >> _input; std::cout << std::endl;
-                if (_input >= _tables.size())
+                if (tables[i].name.compare(input.data()) == 0)
                 {
-                    system("cls");
-                    std::cout << "Table " << _input << " not found " << std::endl;
-                    control_info();
-                    break;
+                    used = &tables[i];
                 }
-                system("cls");
-                show_table(_input);
-                std::cout << std::endl;
-                control_info();
-                break;
             }
-            else
-            {
-                std::cout << "Not found no one table" << std::endl;
-                break;
-            }
-        case 4:
-            if (_tables.size() != 0)
-            {
-                system("cls");
-                show_tables();
-                std::cout << "Enter ID of table: ";
-                std::cin >> _input;
-                if (_input >= _tables.size())
-                {
-                    system("cls");
-                    std::cout << "Table " << _input << " not found " << std::endl;
-                    control_info();
-                    break;
-                }
-                system("cls");
-                add_item(_input);
-                system("cls");
-                control_info();
-                break;
-            }
+        }
+
+        if (input.compare("unuse") == 0)
+        {
+            used = nullptr;
         }
     }
 }
 
 void Main::cleanup()
 {
-
 }
 
-void Main::control_info()
+void Main::info()
 {
-    std::cout << "Table programm " << std::endl;
-    std::cout << " Commands: " << std::endl;
-    std::cout << "  1 - Show all tables" << std::endl;
-    std::cout << "  2 - Create table" << std::endl;
-    std::cout << "  3 - Show table" << std::endl;
-    std::cout << "  4 - Add item in table" << std::endl;
-    std::cout << "  0 - Exit " << std::endl;
+    std::cout
+        << "commands: " << std::endl
+        << "use - select tables" << std::endl
+        << "show - show all tables if table selected then show table content" << std::endl
+        << "info - show command list" << std::endl
+        << "exit - exit from programm" << std::endl
+        << "clear - clearing console" << std::endl
+        << "unuse - deselect table" << std::endl;
 }
 
-void Main::add_item(int num)
-{
-    _use = &_tables[num];
-    std::string input;
 
-    for (int x = 0; x < _use->fields.size(); x++)
+void Main::show_tables(std::vector<Table> & tables)
+{
+    int width1 = tables[0].fields[0].second;
+    int width2 = tables[0].fields[1].second;
+
+    border(&tables[0]);
+    
+    std::cout << "|" << std::setw(width1) << "ID" << '|' << std::setw(width2) << "Table name" << "|" << std::endl;
+    
+    border(&tables[0]);
+
+    for (int i = 0; i < tables.size(); i++)
     {
-        std::cout << "Enter data in cell " << _use->fields[x].first << " or exit for quit: ";
-        std::cin >> input;
+        std::cout << "|" << std::setw(width1) << i << "|" << std::setw(width2) << tables[i].name << "|" << std::endl;
+    }
 
-        if (input.compare("exit") == 0)
+    border(&tables[0]);
+}
+
+void Main::show_table(Table* table)
+{
+    border(used);
+    for (int i = 0; i < table->fields.size(); i++)
+    {
+        std::cout << "|" << std::setw(table->fields[i].second) << table->fields[i].first;
+    }
+    std::cout << "|" << std::endl;
+    border(used);
+
+    if (!used->content.empty())
+    {
+        for (int x = 0, y = 0; x < used->content.size(); x++, y++)
         {
-            if (dialog.start("You want stop add content in table?"))
+            if (y >= used->fields.size())
             {
-                system("cls");
-                control_info();
-
-                break;
-            }
-        }
-        if (!input.empty())
-        {
-            _use->content.push_back(input);
-        }
-    }
-}
-
-void Main::create_table(const std::string& name)
-{
-    Table table;
-    table._name = name;
-    std::string input;
-    std::string _input;
-
-    while (true)
-    {
-        std::cout << "Enter field name or \"exit\" for quit: "; 
-        std::cin >> input;
-        if (input.compare("exit") == 0)
-        {
-            if (dialog.start("You want stop create table?"))
-            {
-                system("cls");
-                control_info();
-
-                break;
-            }
-        
-        }
-        if (!input.empty())
-        {
-            std::cout << "Enter size of field <int>: ";
-            std::cin >> _input;
-            std::cout << std::endl;
-
-            table.fields.push_back(std::make_pair(input, atoi(_input.data())));       
-        }
-    }
-
-    _tables.push_back(table);
-}
-
-void Main::show_tables()
-{
-
-
-    system("cls"); 
-    std::cout.fill('-');
-    std::cout <<'+'<< std::setw(3) << "+" << std::setw(17) <<"+" << std::endl;
-    std::cout.fill(' ');
-    std::cout << std::left << "|ID" << "|" << std::setw(16)  << "Tables" <<  "|" << std::right << std::endl;
-    std::cout.fill('-');
-    std::cout << '+' << std::setw(3) << "+" << std::setw(17) << "+" << std::endl;
-    for (int x = 0; x< _tables.size(); x++)
-    {
-        std::cout.fill(' ');
-        std::cout
-            << '|' << std::left << std::setw(2) << x << std::right
-            << '|' << std::left << std::setw(16) << _tables[x]._name << std::right << '|'
-            << std::endl;
-    }
-    std::cout.fill('-');
-    std::cout << '+' << std::setw(3) << "+" << std::setw(17) << "+" << std::endl;
-    std::cout.fill(' ');
-}
-
-void Main::show_table(int num)
-{
-    // header
-        //top border
-    std::cout.fill('-');
-    for (int x = 0; x < _tables[num].fields.size(); x++)
-    {
-        std::cout << '+' << std::setw(_tables[num].fields[x].second + 1);
-    }
-    std::cout << '+' << std::endl;
-
-        //content
-    std::cout.fill(' ');
-    for (int x = 0; x < _tables[num].fields.size(); x++)
-    {
-        std::cout << '|' << std::setw(_tables[num].fields[x].second) << _tables[num].fields[x].first;
-    }
-
-    std::cout << '|' << std::endl;
-
-        //bottom border
-    std::cout.fill('-');
-    for (int x = 0; x < _tables[num].fields.size(); x++)
-    {
-        std::cout << '+' << std::setw(_tables[num].fields[x].second + 1);
-    }
-    std::cout << '+' << std::endl;
-
-    //body
-    std::cout.fill(' ');
-
-    if (!_tables[num].content.empty())
-    {
-        for (int x = 0, y = 0; x < _tables[num].content.size(); x++, y++)
-        {
-            if (y >= _tables[num].fields.size())
-            {
-                y -= _tables[num].fields.size();
+                y -= used->fields.size();
                 std::cout << "|" << std::endl;
             }
-            std::cout << "|" << std::left << std::setw(_tables[num].fields[y].second) << _tables[num].content[x];
+            std::cout << "|" << std::left << std::setw(used->fields[y].second) << used->content[x];
         }
         std::cout << "|" << std::right << std::endl;
     }
-        //bottom border
+
+    border(used);
+}
+
+void Main::border(Table * table)
+{
     std::cout.fill('-');
-    for (int x = 0; x < _tables[num].fields.size(); x++)
+    for (int i = 0; i < table->fields.size(); i++)
     {
-        std::cout << '+' << std::setw(_tables[num].fields[x].second + 1);
+        std::cout << "+" << std::setw(table->fields[i].second + 1);
     }
-    std::cout << '+' << std::endl;
+    std::cout << "+" << std::endl;
     std::cout.fill(' ');
 }
+
